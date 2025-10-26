@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestor de Repostería</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff6f8;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #d46a8c;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px;
+      background-color: #d46a8c;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #b75978;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    .resumen {
+      margin-top: 20px;
+      font-weight: bold;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <h1>Gestor de Repostería</h1>
+  <div class="container">
+    <form id="form-producto">
+      <input type="text" id="nombre" placeholder="Nombre del producto" required>
+      <input type="number" id="costo" placeholder="Costo (por unidad)" required>
+      <input type="number" id="precio" placeholder="Precio de venta (por unidad)" required>
+      <button type="submit">Agregar producto</button>
+    </form>
+
+    <table id="tabla-productos">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Costo</th>
+          <th>Precio</th>
+          <th>Ganancia</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="resumen">Ganancia total: $<span id="ganancia-total">0</span></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('form-producto');
+    const tabla = document.getElementById('tabla-productos').querySelector('tbody');
+    const total = document.getElementById('ganancia-total');
+
+    let gananciaTotal = 0;
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const nombre = document.getElementById('nombre').value;
+      const costo = parseFloat(document.getElementById('costo').value);
+      const precio = parseFloat(document.getElementById('precio').value);
+      const ganancia = precio - costo;
+
+      const fila = document.createElement('tr');
+      fila.innerHTML = `
+        <td>${nombre}</td>
+        <td>$${costo.toFixed(2)}</td>
+        <td>$${precio.toFixed(2)}</td>
+        <td>$${ganancia.toFixed(2)}</td>
+      `;
+      tabla.appendChild(fila);
+
+      gananciaTotal += ganancia;
+      total.textContent = gananciaTotal.toFixed(2);
+
+      form.reset();
+    });
+  </script>
+</body>
+</html>

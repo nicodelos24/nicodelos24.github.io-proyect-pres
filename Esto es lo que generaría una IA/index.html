@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gestor Repostería — Costos y Precios</title>
+  <style>
+    :root{--bg:#fbfbfd;--card:#ffffff;--muted:#6b7280;--accent:#7c3aed;--success:#059669;--danger:#ef4444;--soft:#e6e9f2}
+    *{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+    body{margin:0;background:linear-gradient(180deg,#f7f7fb, #ffffff);color:#111}
+    header{padding:18px 16px;background:var(--card);display:flex;gap:12px;align-items:center;box-shadow:0 1px 8px rgba(11,12,20,.04)}
+    h1{font-size:18px;margin:0}
+    .container{max-width:1100px;margin:18px auto;padding:0 16px}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:16px}
+    .card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(12,13,20,.04)}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input,select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #e6e7ee;font-size:14px}
+    .row{display:flex;gap:8px}
+    .small{width:70px}
+    button{border:0;padding:9px 12px;border-radius:10px;background:var(--accent);color:white;font-weight:600;cursor:pointer}
+    button.ghost{background:transparent;color:var(--accent);border:1px solid var(--soft)}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;text-align:left;border-bottom:1px solid #f1f2f6;font-size:14px}
+    th{font-weight:700}
+    .muted{color:var(--muted);font-size:13px}
+    .img-thumb{height:48px;width:48px;object-fit:cover;border-radius:8px;border:1px solid #eee}
+    .danger{background:var(--danger);}
+    .flex{display:flex;gap:8px;align-items:center}
+    .center{text-align:center}
+    .filter{margin:10px 0;display:flex;gap:8px}
+    .stat{display:flex;gap:10px;align-items:center}
+    @media(max-width:900px){.grid{grid-template-columns:1fr;}.small{width:56px}}
+    .validation{color:var(--danger);font-size:13px;margin-top:6px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Gestor Repostería — Costos, Recetas y Precios</h1>
+    <div style="margin-left:auto" class="muted">Guardado en localStorage · Responsive · Export CSV / Imprimir</div>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+      <div>
+        <section class="card" id="productos-card">
+          <h2 style="margin-top:0">Productos / Recetas</h2>
+
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <input id="searchProd" placeholder="Buscar producto..." />
+            <select id="sortProd"><option value="name">Ordenar: nombre</option><option value="cost_desc">Costo ▼</option><option value="cost_asc">Costo ▲</option><option value="gain_desc">Ganancia ▼</option><option value="gain_asc">Ganancia ▲</option></select>
+            <button id="btnNewProduct" class="ghost">+ Nuevo</button>
+          </div>
+
+          <div id="productListWrap" style="max-height:420px;overflow:auto">
+            <table id="productTable">
+              <thead><tr><th>Img</th><th>Producto</th><th>Costo</th><th>Precio</th><th>Ganancia</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+            <button id="exportCSV">Exportar CSV</button>
+            <button id="printList" class="ghost">Imprimir / Guardar PDF</button>
+            <button id="eraseAll" class="ghost danger">Borrar todo</button>
+          </div>
+        </section>
+
+        <section class="card" style="margin-top:12px">
+          <h3>Resumen</h3>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
+            <div class="card" style="padding:10px;border-radius:10px">Productos: <strong id="statCount">0</strong></div>
+            <div class="card" style="padding:10px;border-radius:10px">Costo total: <strong id="statCost">$0.00</strong></div>
+            <div class="card" style="padding:10px;border-radius:10px">Ganancia total: <strong id="statGain">$0.00</strong></div>
+          </div>
+        </section>
+
+      </div>
+
+      <aside>
+        <div class="card">
+          <h3>Ingredientes / Inventario</h3>
+          <form id="ingredientForm">
+            <label for="ingrName">Nombre</label>
+            <input id="ingrName" required />
+
+            <div class="row" style="margin-top:8px">
+              <div style="flex:1">
+                <label for="ingrQty">Cantidad (stock)</label>
+                <input id="ingrQty" type="number" min="0" step="any" />
+              </div>
+              <div style="width:120px">
+                <label for="ingrUnit">Unidad</label>
+                <select id="ingrUnit"><option value="g">g</option><option value="kg">kg</option><option value="ml">ml</option><option value="l">l</option><option value="u">u (unidad)</option></select>
+              </div>
+            </div>
+
+            <label for="ingrPrice">Precio (por la unidad mayor, ej: 1 kg o 1 l)</label>
+            <div class="row">
+              <input id="ingrPrice" type="number" min="0" step="any" />
+              <input id="ingrImage" type="file" accept="image/*" capture="environment" />
+            </div>
+            <div class="row" style="margin-top:8px">
+              <button id="addIngr">Agregar</button>
+              <button id="clearIngr" type="button" class="ghost">Limpiar</button>
+            </div>
+            <div id="ingrValidation" class="validation" style="display:none"></div>
+          </form>
+
+          <div style="margin-top:10px">
+            <table id="ingrTable"><thead><tr><th>Img</th><th>Ingrediente</th><th>Stock</th><th>Precio</th><th></th></tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Crear / Editar Producto</h3>
+          <form id="productForm">
+            <label>Nombre</label>
+            <input id="prodName" />
+            <label>Imagen (cámara/opcional)</label>
+            <input id="prodImage" type="file" accept="image/*" capture="environment" />
+
+            <label style="margin-top:8px">Ingredientes de la receta</label>
+            <div id="recipeBuilder">
+              <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+                <select id="selIngr" style="flex:1"></select>
+                <input id="selQty" class="small" placeholder="cant" />
+                <select id="selUnit" class="small"><option>g</option><option>kg</option><option>ml</option><option>l</option><option>u</option></select>
+                <button id="addToRecipe" type="button" class="ghost">+ Añadir</button>
+              </div>
+              <table id="recipeTable"><thead><tr><th>Ingred</th><th>Cant</th><th>Costo</th><th></th></tr></thead><tbody></tbody></table>
+            </div>
+
+            <label style="margin-top:8px">Horas estimadas</label>
+            <input id="prodHours" type="number" min="0" step="any" placeholder="ej: 0.5" />
+            <label>Valor hora (para imputar costo por tiempo)</label>
+            <input id="hourValue" type="number" min="0" step="any" placeholder="ej: 200" />
+
+            <label style="margin-top:8px">Costos fijos (gas, transporte, decoración) — total por producto (opcional)</label>
+            <input id="fixedCosts" type="number" min="0" step="any" />
+
+            <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+              <label>% Ganancia deseada</label>
+              <input id="profitPercent" type="number" min="0" step="any" class="small" placeholder="ej: 40" />
+              <div class="muted" style="font-size:13px">Precio calculado: <strong id="computedPrice">$0.00</strong></div>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button id="saveProduct">Guardar producto</button>
+              <button id="cancelProduct" type="button" class="ghost">Cancelar</button>
+            </div>
+            <div id="prodValidation" class="validation" style="display:none"></div>
+          </form>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    // --- Utilidades ---
+    const toNumber = v => (v==null||v==='')?0:parseFloat(v);
+    const money = v => '$' + Number(v||0).toFixed(2);
+
+    // --- LocalStorage keys and data ---
+    const KEY = 'g_reposteria_v1';
+    const state = {ingredients:[], products:[], log:[]};
+    function saveState(){localStorage.setItem(KEY,JSON.stringify(state));}
+    function loadState(){
+      const raw = localStorage.getItem(KEY);
+      if(raw){try{const d=JSON.parse(raw);Object.assign(state,d);}catch(e){}
+      }
+    }
+
+    // --- Unit conversion helpers ---
+    const unitBase = {g:1,kg:1000,ml:1,l:1000,u:1};
+    function toBase(q,unit){return q * (unitBase[unit]||1);} // g, ml, u are base
+    function convert(q,from,to){return (toBase(q,from) / (unitBase[to]||1));}
+
+    // --- DOM bindings ---
+    const ingrForm=document.getElementById('ingredientForm');
+    const ingrTable=document.querySelector('#ingrTable tbody');
+    const prodTable=document.querySelector('#productTable tbody');
+    const selIngr=document.getElementById('selIngr');
+
+    // load
+    loadState(); renderAll();
+
+    // --- Ingredient management ---
+    document.getElementById('addIngr').addEventListener('click', e=>{
+      e.preventDefault(); const name=document.getElementById('ingrName').value.trim();
+      const qty=toNumber(document.getElementById('ingrQty').value);
+      const unit=document.getElementById('ingrUnit').value;
+      const price=toNumber(document.getElementById('ingrPrice').value);
+      const imgFile=document.getElementById('ingrImage').files[0];
+      const valEl=document.getElementById('ingrValidation'); valEl.style.display='none';
+      if(!name){valEl.textContent='El nombre es requerido.'; valEl.style.display='block'; return}
+      if(price<=0){valEl.textContent='El precio debe ser mayor a 0.'; valEl.style.display='block'; return}
+      // read image
+      if(imgFile){const reader=new FileReader(); reader.onload=ev=>{pushIngredient({name,qty,unit,price,image:ev.target.result});}; reader.readAsDataURL(imgFile);
+      } else pushIngredient({name,qty,unit,price,image:''});
+      ingrForm.reset();
+    });
+
+    function pushIngredient(obj){obj.id = Date.now()+Math.random(); state.ingredients.push(obj); state.log.push({t:new Date().toISOString(),action:'add_ingredient',id:obj.id,name:obj.name}); saveState(); renderAll();}
+
+    function renderIngredients(){ingrTable.innerHTML=''; selIngr.innerHTML=''; state.ingredients.forEach(ing=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td><img src="${ing.image||'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='}" class="img-thumb"></td>
+        <td>${ing.name}</td>
+        <td>${ing.qty} ${ing.unit}</td>
+        <td>${money(ing.price)}</td>
+        <td class="flex"><button data-id="${ing.id}" class="editIng ghost">Editar</button><button data-id="${ing.id}" class="delIng ghost">Borrar</button></td>`;
+      ingrTable.appendChild(tr);
+      const opt=document.createElement('option'); opt.value=ing.id; opt.textContent=ing.name; selIngr.appendChild(opt);
+    });
+    // attach events
+    document.querySelectorAll('.delIng').forEach(b=>b.onclick=e=>{const id=+e.target.dataset.id; if(confirm('¿Borrar ingrediente?')){state.ingredients=state.ingredients.filter(i=>i.id!==id); state.log.push({t:new Date().toISOString(),action:'del_ingredient',id}); saveState(); renderAll();}});
+    document.querySelectorAll('.editIng').forEach(b=>b.onclick=e=>{const id=+e.target.dataset.id; const ing=state.ingredients.find(x=>x.id===id); if(!ing) return; document.getElementById('ingrName').value=ing.name; document.getElementById('ingrQty').value=ing.qty; document.getElementById('ingrUnit').value=ing.unit; document.getElementById('ingrPrice').value=ing.price; // image cannot be set programmatically
+      // delete old and will be added on save
+      state.ingredients=state.ingredients.filter(x=>x.id!==id); saveState();});}
+
+    // --- Product / Recipe management ---
+    let editingProduct = null;
+    const recipe = []; // temporary builder
+    document.getElementById('btnNewProduct').addEventListener('click', ()=>openProductForm());
+    function openProductForm(prod){editingProduct=prod||null; recipe.length=0; renderRecipe(); document.getElementById('productForm').reset(); document.getElementById('prodValidation').style.display='none'; if(prod){document.getElementById('prodName').value=prod.name; document.getElementById('profitPercent').value=prod.profitPercent; document.getElementById('prodHours').value=prod.hours; document.getElementById('hourValue').value=prod.hourValue; document.getElementById('fixedCosts').value=prod.fixedCosts; if(prod.recipe) prod.recipe.forEach(r=>recipe.push(r));}
+      renderRecipe(); computePricePreview(); window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    document.getElementById('addToRecipe').addEventListener('click', ()=>{
+      const id=+selIngr.value; const qty=toNumber(document.getElementById('selQty').value); const unit=document.getElementById('selUnit').value;
+      if(!id || qty<=0) return alert('Seleccione ingrediente y cantidad válida');
+      const ing = state.ingredients.find(x=>x.id===id);
+      if(!ing) return alert('Ingrediente no encontrado');
+      recipe.push({ingId:id, qty, unit}); renderRecipe(); computePricePreview();
+    });
+
+    function renderRecipe(){const tb=document.querySelector('#recipeTable tbody'); tb.innerHTML=''; recipe.forEach((r,idx)=>{
+      const ing=state.ingredients.find(x=>x.id===r.ingId)||{name:'(no disponible)',price:0,unit:'u'};
+      const cost = costOfIngredientFor(r.qty,r.unit,ing);
+      const tr=document.createElement('tr'); tr.innerHTML=`<td>${ing.name}</td><td>${r.qty} ${r.unit}</td><td>${money(cost)}</td><td><button data-idx="${idx}" class="ghost delRec">X</button></td>`; tb.appendChild(tr);
+    });
+    document.querySelectorAll('.delRec').forEach(b=>b.onclick=e=>{recipe.splice(+e.target.dataset.idx,1); renderRecipe(); computePricePreview();});}
+
+    function costOfIngredientFor(q,unit,ing){ // ing.price corresponds to 1 unit of ing.unit (e.g., price per kg)
+      if(!ing) return 0;
+      // convert requested q (unit) to the same base as ingredient's price unit
+      const qInBase = toBase(q,unit);
+      const priceBase = toBase(1,ing.unit); // e.g., 1 kg => 1000 g
+      const pricePerBase = ing.price / priceBase;
+      return qInBase * pricePerBase;
+    }
+
+    function computeProductCost(prod){
+      // sum ingredients
+      const rec = prod.recipe || [];
+      let sum=0; rec.forEach(r=>{
+        const ing = state.ingredients.find(x=>x.id===r.ingId);
+        sum += costOfIngredientFor(r.qty,r.unit,ing);
+      });
+      // time cost
+      const hours = toNumber(prod.hours);
+      const hourValue = toNumber(prod.hourValue);
+      const timeCost = hours * hourValue;
+      const fixed = toNumber(prod.fixedCosts);
+      return {ingredientCost:sum, timeCost, fixed, totalCost: sum + timeCost + fixed};
+    }
+
+    function computePriceFromCost(cost,totalCost,profitPercent){
+      // price = cost / (1 - profit%) OR simple add percent
+      const p = toNumber(profitPercent);
+      if(p<=0) return totalCost;
+      return totalCost * (1 + p/100);
+    }
+
+    document.getElementById('profitPercent').addEventListener('input', computePricePreview);
+    document.getElementById('prodHours').addEventListener('input', computePricePreview);
+    document.getElementById('hourValue').addEventListener('input', computePricePreview);
+    document.getElementById('fixedCosts').addEventListener('input', computePricePreview);
+
+    function computePricePreview(){
+      const temp = {recipe:recipe.slice(), hours:toNumber(document.getElementById('prodHours').value), hourValue:toNumber(document.getElementById('hourValue').value), fixedCosts:toNumber(document.getElementById('fixedCosts').value)};
+      const costObj = computeProductCost(temp);
+      const price = computePriceFromCost(null,costObj.totalCost,toNumber(document.getElementById('profitPercent').value));
+      document.getElementById('computedPrice').textContent = money(price);
+    }
+
+    document.getElementById('saveProduct').addEventListener('click', e=>{
+      e.preventDefault(); const name=document.getElementById('prodName').value.trim(); if(!name) {showProdVal('Nombre requerido');return}
+      const imgFile=document.getElementById('prodImage').files[0]; const profit=toNumber(document.getElementById('profitPercent').value);
+      const prodObj = {id: editingProduct?editingProduct.id:Date.now()+Math.random(), name, recipe:recipe.slice(), hours:toNumber(document.getElementById('prodHours').value), hourValue:toNumber(document.getElementById('hourValue').value), fixedCosts:toNumber(document.getElementById('fixedCosts').value), profitPercent:profit};
+      if(imgFile){const reader=new FileReader(); reader.onload=ev=>{prodObj.image=ev.target.result; pushProduct(prodObj);}; reader.readAsDataURL(imgFile);} else{prodObj.image = editingProduct?editingProduct.image||'':''; pushProduct(prodObj);} }
+    );
+
+    function showProdVal(msg){const el=document.getElementById('prodValidation'); el.textContent=msg; el.style.display='block';}
+    function pushProduct(obj){ // if editing replace
+      const exists = state.products.findIndex(p=>p.id===obj.id);
+      if(exists>=0) state.products[exists]=obj; else state.products.push(obj);
+      state.log.push({t:new Date().toISOString(),action:'save_product',id:obj.id,name:obj.name}); saveState(); renderAll(); openProductForm();}
+
+    // Render products list
+    function renderProducts(){prodTable.innerHTML=''; const q=document.getElementById('searchProd').value.toLowerCase(); const sort=document.getElementById('sortProd').value;
+      let list = state.products.map(p=>{const costObj=computeProductCost(p); const price = computePriceFromCost(null,costObj.totalCost,p.profitPercent); const gain = price - costObj.totalCost; return {...p,costObj,price,gain}});
+      if(q) list = list.filter(p=>p.name.toLowerCase().includes(q));
+      if(sort==='cost_desc') list.sort((a,b)=>b.costObj.totalCost - a.costObj.totalCost);
+      if(sort==='cost_asc') list.sort((a,b)=>a.costObj.totalCost - b.costObj.totalCost);
+      if(sort==='gain_desc') list.sort((a,b)=>b.gain - a.gain);
+      if(sort==='gain_asc') list.sort((a,b)=>a.gain - b.gain);
+      list.forEach(p=>{
+        const tr=document.createElement('tr'); tr.innerHTML=`<td><img src="${p.image||'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='}" class="img-thumb"></td>
+          <td><strong>${p.name}</strong><div class="muted">Ingredientes: ${p.recipe?p.recipe.length:0} · Horas: ${p.hours||0}</div></td>
+          <td>${money(p.costObj.totalCost)}</td>
+          <td>${money(p.price)}</td>
+          <td>${money(p.gain)} (${(p.profitPercent||0)}%)</td>
+          <td class="flex"><button data-id="${p.id}" class="editProd ghost">Editar</button><button data-id="${p.id}" class="delProd ghost">Borrar</button></td>`;
+        prodTable.appendChild(tr);
+      });
+      document.querySelectorAll('.delProd').forEach(b=>b.onclick=e=>{const id=+e.target.dataset.id; if(confirm('¿Borrar producto?')){state.products=state.products.filter(x=>x.id!==id); state.log.push({t:new Date().toISOString(),action:'del_product',id}); saveState(); renderAll();}});
+      document.querySelectorAll('.editProd').forEach(b=>b.onclick=e=>{const id=+e.target.dataset.id; const prod=state.products.find(x=>x.id===id); openProductForm(prod);});
+    }
+
+    // --- Export / Print / Clear ---
+    document.getElementById('exportCSV').addEventListener('click', ()=>{
+      // produce CSV of products
+      const rows=[['id','name','cost','price','gain','profitPercent','hours','hourValue','fixedCosts']];
+      state.products.forEach(p=>{const c=computeProductCost(p); const price=computePriceFromCost(null,c.totalCost,p.profitPercent); rows.push([p.id,p.name,c.totalCost,price,price-c.totalCost,p.profitPercent,p.hours,p.hourValue,p.fixedCosts]);});
+      const csv = rows.map(r=>r.map(cell=>`"${(''+cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='productos.csv'; a.click(); URL.revokeObjectURL(url);
+    });
+    document.getElementById('printList').addEventListener('click', ()=>{window.print();});
+    document.getElementById('eraseAll').addEventListener('click', ()=>{if(confirm('CONFIRMAR: borrar todo el inventario y productos? Esta acción no se puede deshacer.')){state.ingredients=[]; state.products=[]; state.log.push({t:new Date().toISOString(),action:'erase_all'}); saveState(); renderAll();}});
+
+    document.getElementById('clearIngr').addEventListener('click', e=>{e.preventDefault(); ingrForm.reset();});
+
+    // search and sort handlers
+    document.getElementById('searchProd').addEventListener('input', renderProducts);
+    document.getElementById('sortProd').addEventListener('change', renderProducts);
+
+    // --- Stats and render ---
+    function renderAll(){ renderIngredients(); renderProducts(); updateStats(); }
+
+    function updateStats(){document.getElementById('statCount').textContent = state.products.length; const totalCost = state.products.reduce((s,p)=>s+computeProductCost(p).totalCost,0); document.getElementById('statCost').textContent = money(totalCost); const totalGain = state.products.reduce((s,p)=>{const c=computeProductCost(p); const price=computePriceFromCost(null,c.totalCost,p.profitPercent); return s + (price - c.totalCost)},0); document.getElementById('statGain').textContent = money(totalGain);}    
+
+    // simple persistence autosave
+    window.addEventListener('beforeunload', saveState);
+
+    // show equivalences helper
+    // small help: show unit equivalences under tables (not intrusive)
+    const help = document.createElement('div'); help.className='card'; help.style.margin='14px auto'; help.style.maxWidth='1100px'; help.style.textAlign='center'; help.innerHTML='<small class="muted">Equivalencias: 1 kg = 1000 g · 1 l = 1000 ml</small>';
+    document.body.appendChild(help);
+
+    // --- Quick demo content if empty (optional) ---
+    if(state.ingredients.length===0 && state.products.length===0){
+      // add sample ingredients
+      state.ingredients.push({id:111,name:'Harina',qty:10,unit:'kg',price:800,image:''});
+      state.ingredients.push({id:112,name:'Azúcar',qty:5,unit:'kg',price:600,image:''});
+      state.ingredients.push({id:113,name:'Huevos',qty:60,unit:'u',price:1200,image:''});
+      state.products.push({id:201,name:'Torta chica',recipe:[{ingId:111,qty:300,unit:'g'},{ingId:112,qty:150,unit:'g'},{ingId:113,qty:3,unit:'u'}],hours:1,hourValue:200,fixedCosts:50,profitPercent:40,image:''});
+      saveState(); renderAll();
+    }
+
+  </script>
+</body>
+</html>
