@@ -79,9 +79,19 @@ Un resumen visual de los productos (por ejemplo, cuántos tiene cargados y ganan
 
 SOlUCIONAR
 
+- Antes de calcular el precio de un Producto, quiero agregar el costo de horas trabajadas (y quizá gastos adicionales, ejemplo una garrafa de gas cada 15 días tiene costo de etc..); sumar esos cargos al precio por producto.
+EN RESUMEN: Horas estimadas por producto, y gastos fijos por producto, ej si una garrafa cocina hornea 1 vez al dia y cocina por 3 veces al dia, deberia durar 20 días, sumar ese costo al total de los costos por producto
+
 - Ganancia total (al recargar página deja de sumarse la ganancia de todos los productos guardados)
 
 - Al guardar un Material como paquete, se genera un error al guardar más de una unidad, se genera bien la conversión
 en la sección de ingredientes, pero al ingresar ese paquete como ingrediente para el costo de un producto, se genera un error al poner por ejemplo 1 unidad, si antes guardamos ese producto como 12
 
-- Problema al querer usar imagen desde el celu, cuando uso la cámara para hacer foto en el momento no se guarda la imagen más de una vez, y todos los navegadores que no sea Brave no me está dejando 
+- Problema al querer usar imagen desde el celu, cuando uso la cámara para hacer foto en el momento no se guarda la imagen más de una vez, y todos los navegadores que no sea Brave no me está dejando sss
+
+
+IDEA GOD DEL RESUELTO:
+
+-Una vez ingresado el costo horario, de gastos (como gas, que supongo que debería ir en ingredientes y materiales para simplificar quizá, como gasto/ingrediente/material constante, que se calcule por horas de duracion (ejemplo: si dura 15 dias, calcular cuántas horas dura, y según las horas de preparación calcular el estimado de ese costo)).
+Que se calcule cuánto de ese porcentaje indicado o estimado de ganancia por producto equivale a esos gastos, o algo así (ya me mezclé); 
+O sea, que si pongo 300% de ganancia, me indique cuánto exactamente de esa ganancia neta, va destinada a esos gastos :D.

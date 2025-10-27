@@ -298,32 +298,51 @@ function actualizarCostoIngredientes() {
 
     let cantidadConvertida;
 
+    // caso 1- ingrediente guardado como "paquete" pero usado en otra unidad (por ejemplo unidades o gramos)
     if (ingData.unidad === "paquete" && unidadUsada !== "paquete") {
-      //si ingrediente se guarda como paquete
       const contenidoEnBase = convertirCantidad(
         ingData.contenido,
         ingData.contenidoUnidad,
         unidadUsada
       );
 
-      cantidadConvertida = (cantidadUsada / contenidoEnBase) * ingData.cantidad;
-    } else if (ingData.unidad !== "paquete" && unidadUsada === "paquete") {
-      //  caso 2: ingrediente guardado en unidades/peso pero seu usa en paquetes
+      // costo total = precio total * fracción usada del stock total
+      const costoFraccion =
+        ingData.precio * (cantidadUsada / (ingData.cantidad * contenidoEnBase));
+
+      spanCosto.textContent = `$${costoFraccion.toFixed(2)}`;
+      total += costoFraccion;
+
+      ingredientesUsados.push({
+        nombre: nombreIng,
+        cantidad: cantidadUsada,
+        unidad: unidadUsada,
+        costo: costoFraccion,
+      });
+
+      return; // sale de esta iteración, ya se calculo este ingrediente
+    }
+
+    // caso 2 -ingrediente guardado en unidades/peso pero usado en paquetes
+    else if (ingData.unidad !== "paquete" && unidadUsada === "paquete") {
       const contenidoEnBase = convertirCantidad(
         ingData.contenido,
         ingData.contenidoUnidad,
         ingData.unidad
       );
       cantidadConvertida = cantidadUsada * contenidoEnBase;
-    } else {
-      // sino se usa la conversión normal
+    }
+
+    // caso3 -conversión normal (sin paquetes)
+    else {
       cantidadConvertida = convertirCantidad(
         cantidadUsada,
-        unidadUsada, // la selecciona el usuario al usar ingrediente
-        ingData.unidad // unidad en el inventario
+        unidadUsada,
+        ingData.unidad
       );
     }
 
+    // cálculo de costo normal
     const costoUnitario = ingData.precio / ingData.cantidad;
     const costoTotal = costoUnitario * cantidadConvertida;
 
@@ -338,6 +357,7 @@ function actualizarCostoIngredientes() {
     });
   });
 
+  // 🧾 mostrar total final
   costoIngredientesSpan.textContent = total.toFixed(2);
   costoInput.value = total.toFixed(2);
 }
